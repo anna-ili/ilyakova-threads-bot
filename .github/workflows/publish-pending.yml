@@ -1,12 +1,18 @@
 name: Publish pending replies
 
-# Пингует /api/cron/publish-pending на Vercel каждую минуту.
+# Пингует /api/cron/publish-pending на Vercel каждые 5 минут.
 # Публикует одобренные черновики ответов с 5-минутной задержкой.
-# Минимальный шаг GitHub Actions — 5 минут, но фактически запускается быстрее
-# если несколько workflow'ов.
+#
+# ⚠️ АГЕНТУ / ПОЛЬЗОВАТЕЛЮ: в этом шаблоне автозапуск по расписанию выключен
+# (закомментирован) нарочно — чтобы пустой форк не падал каждые 5 минут
+# и не спамил почту владельца до настройки секретов.
+# ЧТОБЫ ВКЛЮЧИТЬ АВТОПОСТИНГ:
+#   1) Задай в Settings → Secrets and variables → Actions секреты
+#      VERCEL_URL и CRON_SECRET (см. SETUP.md).
+#   2) Раскомментируй две строки schedule/cron ниже.
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # schedule:
+  #   - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:

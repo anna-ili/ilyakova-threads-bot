@@ -4,9 +4,17 @@ name: Weekly castdev analysis
 # Тянет /api/cron/weekly-analysis на Vercel — Amy анализирует архив комментов,
 # выделяет confirmed findings (≥5 разных юзеров) и weak signals, обновляет
 # queue/castdev_findings.md, шлёт отчёт в Telegram.
+#
+# ⚠️ АГЕНТУ / ПОЛЬЗОВАТЕЛЮ: в этом шаблоне автозапуск по расписанию выключен
+# (закомментирован) нарочно — чтобы пустой форк не падал по расписанию
+# и не спамил почту владельца до настройки секретов.
+# ЧТОБЫ ВКЛЮЧИТЬ НЕДЕЛЬНЫЙ АНАЛИЗ:
+#   1) Задай в Settings → Secrets and variables → Actions секреты
+#      VERCEL_URL и CRON_SECRET (см. SETUP.md).
+#   2) Раскомментируй две строки schedule/cron ниже.
 on:
-  schedule:
-    - cron: "0 4 * * 1"
+  # schedule:
+  #   - cron: "0 4 * * 1"
   workflow_dispatch:
 
 jobs:

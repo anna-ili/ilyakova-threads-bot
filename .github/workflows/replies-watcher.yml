@@ -2,10 +2,17 @@ name: Threads replies watcher
 
 # Пингует /api/cron/replies-watcher на Vercel каждые 5 минут.
 # Сделано как GitHub Action, потому что Vercel Hobby plan разрешает cron только раз в день.
-# Был 10 минут — ускорили до 5 чтобы Amy быстрее реагировала на комменты.
+#
+# ⚠️ АГЕНТУ / ПОЛЬЗОВАТЕЛЮ: в этом шаблоне автозапуск по расписанию выключен
+# (закомментирован) нарочно — чтобы пустой форк не падал каждые 5 минут
+# и не спамил почту владельца до настройки секретов.
+# ЧТОБЫ ВКЛЮЧИТЬ СЛЕЖЕНИЕ ЗА КОММЕНТАМИ:
+#   1) Задай в Settings → Secrets and variables → Actions секреты
+#      VERCEL_URL и CRON_SECRET (см. SETUP.md).
+#   2) Раскомментируй две строки schedule/cron ниже.
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # schedule:
+  #   - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
