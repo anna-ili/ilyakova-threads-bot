@@ -19,6 +19,7 @@ import { getBrandVoicePrompt } from './brand';
 import { getFile, putFile } from './github';
 import { readArchive } from './comments-archive';
 import { handleAt } from './brand-config';
+import { codexChat } from './codex-chat';
 
 // Минимум разных юзеров чтобы тема стала подтверждённым finding.
 // Если у тебя выйдет, что findings никогда не появляются — снизить до 3.
@@ -182,33 +183,15 @@ ${archiveSlice}
 Только JSON, без пояснений.
 `.trim();
 
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error('OPENROUTER_API_KEY не задан');
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://your-app.vercel.app',
-      'X-Title': 'Threads Bot - weekly analysis',
-    },
-    body: JSON.stringify({
-      model: 'anthropic/claude-sonnet-4.6',
-      messages: [
+  let raw = (
+    await codexChat(
+      [
         { role: 'system', content: await getBrandVoicePrompt() },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: 4000,
-      temperature: 0.3, // низкая — нужны факты, не креатив
-      response_format: { type: 'json_object' },
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenRouter ${res.status}: ${t}`);
-  }
-  const data = (await res.json()) as { choices: Array<{ message: { content: string } }> };
-  let raw = (data.choices[0]?.message?.content ?? '').trim();
+      { maxTokens: 4000, jsonMode: true }
+    )
+  ).trim();
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   if (fenced) raw = fenced[1];
 

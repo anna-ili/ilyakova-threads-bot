@@ -42,10 +42,11 @@
 
 ## Как это устроено
 
-- **Next.js + TypeScript**, крутится на **Vercel** (cron + serverless-ручки).
+- **Next.js + TypeScript**, крутится в отдельном Docker-контейнере на VPS.
 - **Очередь постов** — markdown-файлы прямо в репо (`queue/`).
 - **Управление** — через Telegram-бота (одобряешь/правишь посты и ответы).
-- **LLM** — генерация и переводы через **OpenRouter** (модель настраивается).
+- **LLM** — генерация и переводы через официальный **Codex CLI** с входом в
+  личный ChatGPT-аккаунт.
 - **Состояние** диалогов/аутрича — в **Redis** (например, Upstash).
 
 ```
@@ -54,7 +55,7 @@ lib/brand-config.ts     ← кто ты: имя бренда, сайт, хэнд
 queue/                  ← очередь постов (тут лежат 2 примера-рыбы)
 app/api/cron/           ← ручки: autopost, replies-watcher, token-refresh, …
 app/api/bot/            ← Telegram-вебхук (команды и кнопки)
-lib/                    ← логика: Threads, Telegram, OpenRouter, Redis, GitHub
+lib/                    ← логика: Threads, Telegram, Codex, Redis, GitHub
 ```
 
 Главная идея: вся «личность» бота вынесена в **`prompts/*.md`** — бот читает их
@@ -86,7 +87,7 @@ lib/                    ← логика: Threads, Telegram, OpenRouter, Redis, 
    ```
 
 6. **Полный деплой** — пошагово по каждому сервису в **[SETUP.md](SETUP.md)**
-   (Threads app, Telegram, OpenRouter, GitHub PAT, Upstash, Vercel).
+   (Threads app, Telegram, ChatGPT/Codex, GitHub PAT, Upstash, VPS).
 
 ---
 
@@ -99,7 +100,7 @@ lib/                    ← логика: Threads, Telegram, OpenRouter, Redis, 
 |---|---|
 | Threads API | публикация постов и ответов |
 | Telegram Bot | одобрение/правка постов и ответов, алерты |
-| OpenRouter | генерация постов и переводы |
+| ChatGPT / Codex CLI | генерация постов и переводы |
 | GitHub PAT | бот хранит очередь как файлы в репо |
 | Redis (Upstash) | состояние диалогов и аутрича |
 

@@ -12,7 +12,7 @@
 2. [Бренд — кто ты](#2-бренд--кто-ты)
 3. [Threads API](#3-threads-api)
 4. [Telegram-бот](#4-telegram-бот)
-5. [OpenRouter (LLM)](#5-openrouter-llm)
+5. [Codex CLI (LLM)](#5-codex-cli-llm)
 6. [GitHub PAT (хранилище очереди)](#6-github-pat-хранилище-очереди)
 7. [Upstash Redis](#7-upstash-redis)
 8. [Деплой на Vercel](#8-деплой-на-vercel)
@@ -100,21 +100,20 @@ Webhook (чтобы бот реагировал на кнопки) подклю�
 
 ---
 
-## 5. OpenRouter (LLM)
+## 5. Codex CLI (LLM)
 
-Бот пишет посты и ответы через модель на OpenRouter.
+Бот пишет посты и ответы через официальный Codex CLI с авторизацией личного
+ChatGPT-аккаунта. Отдельный API-ключ для LLM не нужен.
 
-1. Зарегистрируйся на <https://openrouter.ai/>, пополни баланс (хватит пары
-   долларов на старт).
-2. Создай API-ключ.
+1. На сервере установи Codex CLI версии, указанной в `Dockerfile`.
+2. Выполни `codex login --device-auth`.
+3. Открой выданную официальную ссылку OpenAI, войди в ChatGPT и введи
+   одноразовый код.
+4. Проверь `codex login status` — должно быть `Logged in using ChatGPT`.
+5. Данные входа монтируются в контейнер как `/home/node/.codex`.
 
-```
-OPENROUTER_API_KEY="sk-or-..."
-```
-
-Какая модель используется — задаётся в коде (`lib/openrouter.ts` и
-`lib/post-generator.ts`, поле `model`). По умолчанию стоит Claude Sonnet —
-можешь поменять на любую из каталога OpenRouter.
+Текстовый мост находится в `lib/codex-chat.ts`. Он запускает Codex в пустой
+рабочей папке, в режиме только чтения и без сохранения сессий.
 
 ---
 

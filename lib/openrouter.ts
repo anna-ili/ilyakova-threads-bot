@@ -1,44 +1,7 @@
-// Клиент OpenRouter. Используется для генерации черновиков ответов и перевода на английский.
+// Генерация через Codex CLI с авторизацией ChatGPT.
 import { getBrandVoicePrompt, DraftResult } from './brand';
 import { BRAND } from './brand-config';
-
-const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'anthropic/claude-sonnet-4.6';
-
-interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-async function chat(messages: ChatMessage[], opts: { jsonMode?: boolean; maxTokens?: number } = {}): Promise<string> {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error('OPENROUTER_API_KEY не задан');
-
-  const body: any = {
-    model: MODEL,
-    messages,
-    max_tokens: opts.maxTokens ?? 800,
-    temperature: 0.6,
-  };
-  if (opts.jsonMode) body.response_format = { type: 'json_object' };
-
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://your-app.vercel.app',
-      'X-Title': 'Threads Bot',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenRouter ${res.status}: ${t}`);
-  }
-  const data = (await res.json()) as { choices: Array<{ message: { content: string } }> };
-  return data.choices[0]?.message?.content ?? '';
-}
+import { codexChat as chat } from './codex-chat';
 
 export interface CommentContext {
   postText: string; // текст поста, под которым коммент

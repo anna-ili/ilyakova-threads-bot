@@ -1,4 +1,4 @@
-// Генератор постов через Claude (OpenRouter).
+// Генератор постов через Codex CLI с авторизацией ChatGPT.
 //
 // «Ильякова Тредс» сам пишет драфты постов когда:
 //   - очередь почти пустая (cron /api/cron/queue-refill)
@@ -21,35 +21,13 @@ import {
 } from './castdev';
 import { getBrandVoicePrompt } from './brand';
 import { handleAt } from './brand-config';
+import { codexChat } from './codex-chat';
 
-// Тонкий wrapper над тем же OpenRouter что в lib/openrouter.ts, но без CommentContext.
 async function chat(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
   maxTokens = 800
 ): Promise<string> {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error('OPENROUTER_API_KEY не задан');
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://your-app.vercel.app',
-      'X-Title': 'Threads Bot - generator',
-    },
-    body: JSON.stringify({
-      model: 'anthropic/claude-sonnet-4.6',
-      messages,
-      max_tokens: maxTokens,
-      temperature: 0.85, // выше чем для ответов на комменты — нужно разнообразие
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenRouter ${res.status}: ${t}`);
-  }
-  const data = (await res.json()) as { choices: Array<{ message: { content: string } }> };
-  return data.choices[0]?.message?.content ?? '';
+  return codexChat(messages, { jsonMode: true, maxTokens });
 }
 
 export interface GeneratedPost {
