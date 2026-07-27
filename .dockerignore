@@ -1,0 +1,9 @@
+.git
+.github
+.next
+.env
+.env.*
+node_modules
+npm-debug.log*
+SETUP.md
+AGENTS.md
