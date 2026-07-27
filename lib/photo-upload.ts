@@ -1,5 +1,5 @@
 // Загрузка фото из Telegram → в public/media/ репо через GitHub API.
-// Используется когда пользователь шлёт фото в чат с Amy.
+// Используется когда пользователь шлёт фото в чат с «Ильякова Тредс».
 import { putFile } from './github';
 
 // Telegram getFile вернёт file_path относительно их CDN

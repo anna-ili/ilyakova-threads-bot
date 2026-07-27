@@ -1,4 +1,4 @@
-# SETUP — как запустить Amy с нуля
+# SETUP — как запустить «Ильякова Тредс» с нуля
 
 Гайд для тех, кто берёт репозиторий и поднимает бота под свой бренд. Идём сверху
 вниз. Каждый шаг — отдельный сервис; в конце связываем всё на Vercel.
@@ -26,7 +26,7 @@
 
 ```bash
 git clone <твой-форк>.git
-cd amy-threads-bot
+cd ilyakova-threads-bot
 npm install
 cp .env.example .env       # сюда будешь вписывать ключи по ходу гайда
 ```
@@ -131,7 +131,7 @@ OPENROUTER_API_KEY="sk-or-..."
 ```
 GITHUB_TOKEN="github_pat_..."
 GITHUB_REPO_OWNER="твой-логин-или-орг"
-GITHUB_REPO_NAME="amy-threads-bot"
+GITHUB_REPO_NAME="ilyakova-threads-bot"
 GITHUB_BRANCH="main"
 ```
 
@@ -172,7 +172,7 @@ UPSTASH_REDIS_REST_TOKEN="..."
 ответов) вынесена в **GitHub Actions** — потому что бесплатный тариф Vercel
 разрешает cron только раз в день. Эти workflow лежат в `.github/workflows/`.
 Чтобы они работали, добавь в **Settings → Secrets → Actions** репозитория:
-- `VERCEL_URL` — адрес твоего деплоя (например `https://amy-xxx.vercel.app`)
+- `VERCEL_URL` — адрес твоего деплоя (например `https://ilyakova-threads-xxx.vercel.app`)
 - `CRON_SECRET` — то же значение, что в Vercel
 
 > Почему так, а не отдельный сервер: чтобы тебе не платить за хостинг и не

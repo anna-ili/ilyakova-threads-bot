@@ -1,4 +1,4 @@
-// Кастдев-инструмент для discovery-постов Amy.
+// Кастдев-инструмент для discovery-постов «Ильякова Тредс».
 //
 // ============================================================================
 // ИНСТРУКЦИЯ: модули M1 и M2 ниже — шаблоны. Перепиши goal, forces,
@@ -12,7 +12,7 @@
 // Под капотом — выжимка из Synth_castdev_tool (M1 "Барьеры и мотивы", M2 "JTBD"),
 // адаптированная под формат коротких постов (а не часовых интервью).
 //
-// Каждый discovery-пост таргетирует один CastdevModule. Когда Amy генерит пост:
+// Каждый discovery-пост таргетирует один CastdevModule. Когда бот генерит пост:
 //   1. Выбирает модуль с наименьшим количеством findings (т.е. меньше всего знаем)
 //   2. Берет оттуда фокус-зону и примеры вопросов
 //   3. Учитывает уже накопленные findings — чтобы не спрашивать то что уже знаем
@@ -29,11 +29,11 @@ export type CastdevModuleId = 'M1_barriers' | 'M2_jtbd';
 export interface CastdevModule {
   id: CastdevModuleId;
   name: string;
-  // Что хотим узнать (для system prompt Amy)
+  // Что хотим узнать (для system prompt бота)
   goal: string;
   // Какие силы исследуем (для понимания контекста)
   forces: string;
-  // Зоны для копания — Amy выбирает одну для каждого discovery-поста
+  // Зоны для копания — бот выбирает одну для каждого discovery-поста
   focus_areas: string[];
   // Эталонные вопросы (НЕ вставлять дословно — это примеры голоса)
   example_questions: string[];
@@ -156,7 +156,7 @@ export function pickModuleForDiscovery(findings: Findings): CastdevModule {
   return least;
 }
 
-// Готовый блок контекста для system-prompt Amy при генерации discovery-поста.
+// Готовый блок контекста для system-prompt бота при генерации discovery-поста.
 // Включает: цель модуля, фокус, что НЕ спрашивать, и что уже знаем.
 export function buildCastdevContext(module: CastdevModule, findings: Findings): string {
   const known = findings.by_module[module.id] ?? [];

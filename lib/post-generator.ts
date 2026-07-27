@@ -1,6 +1,6 @@
 // Генератор постов через Claude (OpenRouter).
 //
-// Amy сама пишет драфты постов когда:
+// «Ильякова Тредс» сам пишет драфты постов когда:
 //   - очередь почти пустая (cron /api/cron/queue-refill)
 //   - пользователь вызвал /generate в Telegram
 //
@@ -94,7 +94,7 @@ function extractRecentGoals(recent: QueueItem[]): ContentGoal[] {
 
 // =====================================================================
 // Главная функция — сгенерить пост.
-// Если goal=undefined — Amy сама выбирает по ротации.
+// Если goal=undefined — бот сам выбирает по ротации.
 // =====================================================================
 export async function generatePost(forceGoal?: ContentGoal): Promise<GeneratedPost> {
   const recent = await recentPostedItems(14);
@@ -176,7 +176,7 @@ ${recentBlock}
     .join('-')
     .slice(0, 50)
     || 'untitled';
-  const filename = `${today}-amy-${goal}-${slug}.md`;
+  const filename = `${today}-ilyakova-${goal}-${slug}.md`;
 
   return {
     goal,

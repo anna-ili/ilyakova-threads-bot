@@ -1,4 +1,4 @@
-// Состояние диалогов с Amy — в Upstash Redis.
+// Состояние диалогов с «Ильякова Тредс» — в Upstash Redis.
 // Каждый диалог — отдельный ключ `dialog:<id>`, значение — JSON объекта Dialog.
 // Плюс глобальные ключи: `dialog:awaiting_correction` (id диалога, ждущего правки).
 import { get, set, del, keys } from './redis';

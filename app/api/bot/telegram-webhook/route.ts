@@ -422,7 +422,7 @@ async function handleDraftCorrection(draftId: string, userText: string) {
   try {
     // Передаём исходный текст (text_en + предыдущие правки) — функция reviseDraftPost
     // принимает original / current / corrections
-    const original = d.text_en; // первая версия Amy
+    const original = d.text_en; // первая версия «Ильякова Тредс»
     // current = последний вариант — после очередной правки он становится новым
     newEn = await reviseDraftPost(original, d.text_en, d.corrections_ru);
   } catch (e: any) {
@@ -448,7 +448,7 @@ async function handleCommand(text: string) {
 
   if (cmd === '/help' || cmd === '/start') {
     await sendTelegram(
-      `<b>Команды Amy:</b>\n\n` +
+      `<b>Команды «Ильякова Тредс»:</b>\n\n` +
         `/preview — показать ближайшие 3 драфта из очереди\n` +
         `/edit — редактировать последний опубликованный пост\n` +
         `/generate [subscribe|discovery|brand] — сгенерить пост\n` +
@@ -456,11 +456,11 @@ async function handleCommand(text: string) {
         `/analyze — прогнать анализ архива прямо сейчас (не ждать понедельника)\n` +
         `/register &lt;url&gt; — зарегистрировать пост, опубликованный руками\n` +
         `/help — эта справка\n\n` +
-        `📷 <b>Просто пришли фото в чат</b> → Amy спросит: ` +
+        `📷 <b>Просто пришли фото в чат</b> → бот спросит: ` +
         `заменить последний пост, прикрепить к ближайшему драфту или просто сохранить.\n\n` +
-        `Amy сама генерит посты когда очередь пустеет, ` +
+        `Бот сам генерит посты, когда очередь пустеет, ` +
         `присылает на одобрение в этот чат.\n` +
-        `На комменты Amy сама присылает уведомления с черновиком ответа.\n` +
+        `На комменты бот сам присылает уведомления с черновиком ответа.\n` +
         `Раз в неделю (пн 9:00 Tashkent) — анализ архива комментов и обновление findings.`
     );
     return;
@@ -504,7 +504,7 @@ async function registerManualPost(url?: string) {
     await sendTelegram(
       '<b>Как использовать:</b>\n' +
         `<code>/register https://www.threads.com/${handleAt()}/post/XXX</code>\n\n` +
-        'Amy найдёт этот пост по ссылке, добавит в очередь как posted, ' +
+        'Бот найдёт этот пост по ссылке, добавит в очередь как posted, ' +
         'и дальше будет следить за комментами под ним.'
     );
     return;
@@ -546,7 +546,7 @@ async function registerManualPost(url?: string) {
       `published_at: '${publishedAt}'`,
       `threads_post_id: '${post.id}'`,
       `threads_url: '${post.permalink}'`,
-      `notes: "Опубликовано вручную через приложение Threads. Зарегистрировано через /register, чтобы Amy следила за комментами."`,
+      `notes: "Опубликовано вручную через приложение Threads. Зарегистрировано через /register, чтобы бот следил за комментами."`,
       '---',
     ].join('\n');
     const body = `\n\n# Manual post\n\n## Пост 1\n\n${post.text ?? '(no text)'}\n`;
@@ -622,7 +622,7 @@ async function runAnalyzeNow() {
 
     if (added > 0) {
       await sendTelegram(
-        `💾 В <code>queue/castdev_findings.md</code> добавлено: <b>${added}</b> findings. Amy их учтёт в следующих discovery-постах.`
+        `💾 В <code>queue/castdev_findings.md</code> добавлено: <b>${added}</b> findings. Ильякова Тредс учтёт их в следующих discovery-постах.`
       );
     }
   } catch (e: any) {
@@ -635,7 +635,7 @@ async function startGenerate(goalArg?: string) {
     goalArg === 'subscribe' || goalArg === 'discovery' || goalArg === 'brand'
       ? goalArg
       : undefined;
-  await sendTelegram(`🤖 Amy пишет драфт${goal ? ` (тип: ${goal})` : ''}…`);
+  await sendTelegram(`🤖 Ильякова Тредс пишет драфт${goal ? ` (тип: ${goal})` : ''}…`);
   try {
     const gen = await generatePost(goal);
     const { genDraftId } = await import('@/lib/post-draft');
@@ -713,7 +713,7 @@ async function handleDraftCallback(
         '---',
       ].join('\n');
       const body = `\n\n## Пост 1\n\n${d.text_en}\n`;
-      await putFile(path, fm + body, `amy draft: ${filename}`);
+      await putFile(path, fm + body, `ilyakova draft: ${filename}`);
 
       d.status = 'approved';
       await saveDraft(d);

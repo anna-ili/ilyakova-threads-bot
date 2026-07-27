@@ -12,7 +12,7 @@
 //   - brand      — обычный warm-content для присутствия (как большинство сейчас).
 //                  Тёплая зарисовка, бытовая деталь, без жёсткой цели.
 //
-// Соотношение по умолчанию: ~70% subscribe / 30% discovery + редко brand.
+// Соотношение для «Ильякова Тредс»: 75% subscribe / 20% discovery / 5% brand.
 // Подбери под свою стадию: растёшь — больше subscribe; изучаешь аудиторию — больше discovery.
 
 export type ContentGoal = 'subscribe' | 'discovery' | 'brand';
@@ -82,7 +82,7 @@ export const GOAL_SPECS: Record<ContentGoal, GoalSpec> = {
   },
 };
 
-// Распределение целей по неделе. Используется в post-generator.ts когда Amy
+// Распределение целей по неделе. Используется в post-generator.ts, когда бот
 // решает какой пост сгенерить следующим.
 export interface MixRatio {
   subscribe: number;
@@ -91,8 +91,8 @@ export interface MixRatio {
 }
 
 export const DEFAULT_MIX: MixRatio = {
-  subscribe: 0.65,
-  discovery: 0.30,
+  subscribe: 0.75,
+  discovery: 0.20,
   brand: 0.05,
 };
 

@@ -7,7 +7,7 @@
 //      (сколько разных юзеров сказали похожее)
 //   3. Findings: только темы с ≥CONFIRMED_THRESHOLD разных юзеров.
 //      Weak signals: 1..(CONFIRMED_THRESHOLD-1) разных юзеров — отдельно.
-//   4. Findings → дописываются в queue/castdev_findings.md (Amy их видит)
+//   4. Findings → дописываются в queue/castdev_findings.md (бот их видит)
 //   5. Weak signals → отдельный файл analytics/weak-signals.md (для просмотра)
 //   6. Отчёт в Telegram
 //
@@ -301,7 +301,7 @@ export async function appendConfirmedFindings(report: WeeklyReport): Promise<{ a
 }
 
 // =====================================================================
-// Запись weak signals в отдельный файл (для просмотра, не для Amy)
+// Запись weak signals в отдельный файл (для просмотра, не для бота)
 // =====================================================================
 export async function writeWeakSignals(report: WeeklyReport): Promise<void> {
   if (report.weak_signals.length === 0) return;

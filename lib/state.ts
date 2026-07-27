@@ -1,4 +1,4 @@
-// Какие реплаи Amy уже видела — храним в Redis как SET per post_id.
+// Какие реплаи бот уже видел — храним в Redis как SET per post_id.
 // Ключ: `seen:replies:<post_id>`, значения — reply_id.
 import { sadd, sismember } from './redis';
 

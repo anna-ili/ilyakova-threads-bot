@@ -64,7 +64,7 @@ export async function GET(req: Request) {
 
     if (added > 0) {
       await sendTelegram(
-        `💾 В <code>queue/castdev_findings.md</code> добавлено: <b>${added}</b> findings. Amy их учтёт в следующих discovery-постах.`
+        `💾 В <code>queue/castdev_findings.md</code> добавлено: <b>${added}</b> findings. Ильякова Тредс учтёт их в следующих discovery-постах.`
       );
     }
 

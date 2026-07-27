@@ -1,4 +1,4 @@
-// Форматирование Telegram-сообщений для диалога с Amy.
+// Форматирование Telegram-сообщений для диалога с «Ильякова Тредс».
 import type { Dialog } from './dialog';
 import type { PostEdit } from './post-edit';
 import type { PostDraft } from './post-draft';
@@ -167,11 +167,11 @@ export function formatPreview(items: QueueItem[]): string {
 }
 
 // =====================================================================
-// Авто-сгенерированный драфт от Amy (ждёт одобрения)
+// Авто-сгенерированный драфт от «Ильякова Тредс» (ждёт одобрения)
 // =====================================================================
 export function formatDraft(d: PostDraft): { text: string; keyboard: InlineKeyboard } {
   const goalBadge = `<b>[${d.goal}]</b>` + (d.castdev_module ? ` <i>${escape(d.castdev_module)}</i>` : '');
-  const header = `🤖 <b>Amy сгенерировала пост</b> ${goalBadge}\n<i>${escape(d.rationale)}</i>`;
+  const header = `🤖 <b>Ильякова Тредс сгенерировал пост</b> ${goalBadge}\n<i>${escape(d.rationale)}</i>`;
 
   if (d.status === 'awaiting_correction') {
     return {
