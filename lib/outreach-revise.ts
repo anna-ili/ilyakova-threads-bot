@@ -23,7 +23,7 @@ export async function reviseOutreachComment(
 ${originalPostText}
 """
 
-Текущий вариант комментария (EN):
+Текущий вариант комментария:
 """
 ${currentCommentEn}
 """
@@ -35,8 +35,8 @@ ${correctionRu}
 
 Перепиши комментарий с учётом правки. Верни JSON:
 {
-  "comment_en": "новый текст комментария на английском",
-  "comment_ru": "перевод на русский"
+  "comment_en": "новый текст комментария на русском",
+  "comment_ru": "тот же новый текст комментария на русском"
 }`;
 
   const raw = await codexChat(

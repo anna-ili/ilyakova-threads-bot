@@ -1,7 +1,7 @@
 // Периодически публикует диалоги со status=scheduled_publish, у которых publish_at в прошлом.
 import { NextResponse } from 'next/server';
 import { listDuePublish, saveDialog } from '@/lib/dialog';
-import { translateToEnglish } from '@/lib/openrouter';
+import { prepareReplyForPublication } from '@/lib/openrouter';
 import { publishText } from '@/lib/threads';
 import { editMessageText } from '@/lib/telegram';
 import { formatDialog } from '@/lib/format';
@@ -27,16 +27,12 @@ export async function GET(req: Request) {
 
   for (const dialog of due) {
     try {
-      const english = await translateToEnglish(dialog.draft_ru, {
-        postText: dialog.post_text,
-        replyText: dialog.reply_text_en,
-        replyUsername: dialog.reply_username,
-      });
+      const replyText = prepareReplyForPublication(dialog.draft_ru);
 
-      const postedReply = await publishText(english, dialog.root_reply_id);
+      const postedReply = await publishText(replyText, dialog.root_reply_id);
 
       dialog.status = 'done';
-      dialog.reply_text_en_final = english;
+      dialog.reply_text_en_final = replyText;
       await saveDialog(dialog);
 
       if (dialog.telegram_message_id) {

@@ -5,7 +5,7 @@ import { get, set, del, keys } from './redis';
 
 export type PostEditStatus =
   | 'awaiting_correction' // ждём от пользователя правку русским текстом
-  | 'awaiting_approval' // показали новый английский вариант, ждём ✅/❌
+  | 'awaiting_approval' // показали новый русский вариант, ждём ✅/❌
   | 'done';
 
 export interface PostEdit {
@@ -14,9 +14,9 @@ export interface PostEdit {
   queue_path: string; // например "queue/2026-05-26-foo.md"
   threads_post_id: string;
   threads_url: string;
-  original_text_en: string; // оригинал поста (первый пост треда)
+  original_text_en: string; // legacy-название: оригинал русского поста
   // Свежий вариант после правок (накапливаем итерации)
-  current_text_en: string;
+  current_text_en: string; // legacy-название: текущий русский вариант
   // История правок пользователя на русском (для контекста LLM)
   corrections_ru: string[];
   status: PostEditStatus;

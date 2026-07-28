@@ -38,11 +38,12 @@ export interface OutreachItem {
   thread_url: string;          // permalink чужого поста
   thread_author: string;       // username автора
   thread_text: string;         // текст чужого поста
-  thread_text_ru?: string;     // перевод чужого поста на русский (для карточки)
+  thread_text_ru?: string;     // смысл чужого поста на русском (для карточки)
   search_query: string;        // каким запросом нашли
   tone: 'normal' | 'heavy' | 'spam';
-  comment_en: string;          // сгенерированный ответ (EN)
-  comment_ru: string;          // перевод на русский (для пользователя)
+  // Legacy-название сохранено для совместимости с Redis; текст всегда русский.
+  comment_en: string;
+  comment_ru: string;          // тот же русский текст для карточки
   rationale: string;           // почему такой тон
   status: OutreachItemStatus;
   corrections_ru: string[];    // история правок от пользователя

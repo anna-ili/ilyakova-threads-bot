@@ -33,7 +33,9 @@ async function chat(
 export interface GeneratedPost {
   goal: ContentGoal;
   castdev_module?: string; // только для discovery
-  text_en: string; // готовый английский текст
+  // Legacy-название поля сохранено для совместимости с уже созданными
+  // объектами в Redis. Внутри всегда русский текст.
+  text_en: string;
   suggested_filename: string; // например "2026-05-28-discovery-anxiety.md"
   rationale: string; // 1-2 строки на русском — почему такой пост
 }
@@ -115,10 +117,12 @@ ${recentBlock}
 
 ## Формат ответа — СТРОГО JSON
 {
-  "text_en": "готовый английский текст поста, без кавычек",
+  "text_en": "готовый русский текст поста, без кавычек",
   "rationale": "1-2 предложения на русском — почему такой пост, что именно ловим"
 }
 
+Пост должен быть написан ТОЛЬКО на русском языке. Не переводи его на английский
+и не добавляй английскую версию.
 Никаких пояснений вне JSON.
 `.trim();
 
@@ -143,12 +147,15 @@ ${recentBlock}
 
   const text = (parsed.text_en ?? '').trim().replace(/^["«'"]|["»'"]$/g, '');
   if (!text) throw new Error(`LLM вернул пустой text_en: ${raw.slice(0, 300)}`);
+  if (!/[А-Яа-яЁё]/.test(text)) {
+    throw new Error(`LLM вернул пост не на русском языке: ${raw.slice(0, 300)}`);
+  }
 
   // Имя файла: дата + цель + slug из первых слов
   const today = new Date().toISOString().slice(0, 10);
   const slug = text
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
     .split(/\s+/)
     .slice(0, 5)
     .join('-')

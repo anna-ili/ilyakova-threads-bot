@@ -20,7 +20,7 @@ export interface PostDraft {
   id: string;
   goal: ContentGoal;
   castdev_module?: string;
-  text_en: string;
+  text_en: string; // legacy-название: здесь всегда русский текст
   suggested_filename: string;
   rationale: string;
   // Для иterативной правки

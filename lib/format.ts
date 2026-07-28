@@ -13,7 +13,7 @@ export function escape(text: string): string {
     .replace(/>/g, '&gt;');
 }
 
-// Собирает текст сообщения для одного диалога — перевод коммента + черновик ответа
+// Собирает текст сообщения для одного диалога — комментарий + черновик ответа
 export function formatDialog(d: Dialog): { text: string; keyboard: InlineKeyboard } {
   if (d.status === 'done' && d.skip_reason) {
     return {
@@ -33,15 +33,15 @@ export function formatDialog(d: Dialog): { text: string; keyboard: InlineKeyboar
     `<a href="${escape(d.reply_permalink)}">открыть в Threads</a>`;
 
   const originalBlock =
-    `\n\n<b>Оригинал (EN):</b>\n<blockquote>${escape(d.reply_text_en)}</blockquote>`;
+    `\n\n<b>Комментарий:</b>\n<blockquote>${escape(d.reply_text_en)}</blockquote>`;
 
-  const translationBlock = d.comment_ru
-    ? `<b>Перевод:</b>\n<blockquote>${escape(d.comment_ru)}</blockquote>`
+  const meaningBlock = d.comment_ru && d.comment_ru.trim() !== d.reply_text_en.trim()
+    ? `<b>Смысл:</b>\n<blockquote>${escape(d.comment_ru)}</blockquote>`
     : '';
 
   if (d.status === 'awaiting_approval') {
-    const draftBlock = `<b>Предлагаю ответить (рус):</b>\n<blockquote>${escape(d.draft_ru)}</blockquote>`;
-    const text = [header, originalBlock, translationBlock, draftBlock].filter(Boolean).join('\n\n');
+    const draftBlock = `<b>Предлагаю ответить:</b>\n<blockquote>${escape(d.draft_ru)}</blockquote>`;
+    const text = [header, originalBlock, meaningBlock, draftBlock].filter(Boolean).join('\n\n');
     return {
       text,
       keyboard: [
@@ -56,7 +56,7 @@ export function formatDialog(d: Dialog): { text: string; keyboard: InlineKeyboar
 
   if (d.status === 'awaiting_correction') {
     const text =
-      [header, originalBlock, translationBlock].filter(Boolean).join('\n\n') +
+      [header, originalBlock, meaningBlock].filter(Boolean).join('\n\n') +
       `\n\n<b>Черновик, который правим:</b>\n<blockquote>${escape(d.draft_ru)}</blockquote>` +
       `\n\n✍️ <i>Напиши ответом в чат, что поправить (например: «короче», «без упоминания сайта/бренда», «более тёплый тон»).</i>`;
     return {
@@ -68,8 +68,8 @@ export function formatDialog(d: Dialog): { text: string; keyboard: InlineKeyboar
   if (d.status === 'scheduled_publish') {
     const publishAt = d.publish_at ? new Date(d.publish_at).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : '';
     const text =
-      [header, originalBlock, translationBlock].filter(Boolean).join('\n\n') +
-      `\n\n<b>Одобренный черновик (рус):</b>\n<blockquote>${escape(d.draft_ru)}</blockquote>` +
+      [header, originalBlock, meaningBlock].filter(Boolean).join('\n\n') +
+      `\n\n<b>Одобренный черновик:</b>\n<blockquote>${escape(d.draft_ru)}</blockquote>` +
       `\n\n⏱ <i>Публикация запланирована на ${escape(publishAt)} (МСК)</i>`;
     return {
       text,
@@ -79,7 +79,7 @@ export function formatDialog(d: Dialog): { text: string; keyboard: InlineKeyboar
 
   // done (published)
   const text =
-    [header, originalBlock, translationBlock].filter(Boolean).join('\n\n') +
+    [header, originalBlock, meaningBlock].filter(Boolean).join('\n\n') +
     `\n\n✅ <b>Опубликовано:</b>\n<blockquote>${escape(d.reply_text_en_final ?? d.draft_ru)}</blockquote>`;
   return { text, keyboard: [] };
 }
@@ -94,7 +94,7 @@ export function formatPostEdit(p: PostEdit): { text: string; keyboard: InlineKey
     `Файл: <code>${escape(p.queue_path.split('/').pop() ?? p.queue_path)}</code>`;
 
   const originalBlock =
-    `\n\n<b>Оригинал (EN):</b>\n<blockquote>${escape(p.original_text_en)}</blockquote>`;
+    `\n\n<b>Оригинал:</b>\n<blockquote>${escape(p.original_text_en)}</blockquote>`;
 
   if (p.status === 'awaiting_correction') {
     const hint = p.corrections_ru.length === 0
@@ -102,7 +102,7 @@ export function formatPostEdit(p: PostEdit): { text: string; keyboard: InlineKey
       : '✍️ <i>Напиши следующую правку, или нажми «Готово» если устраивает.</i>';
 
     const currentBlock = p.current_text_en !== p.original_text_en
-      ? `\n\n<b>Текущий вариант (EN):</b>\n<blockquote>${escape(p.current_text_en)}</blockquote>`
+      ? `\n\n<b>Текущий вариант:</b>\n<blockquote>${escape(p.current_text_en)}</blockquote>`
       : '';
 
     return {
@@ -117,7 +117,7 @@ export function formatPostEdit(p: PostEdit): { text: string; keyboard: InlineKey
       text:
         header +
         originalBlock +
-        `\n\n<b>Новый вариант (EN):</b>\n<blockquote>${escape(p.current_text_en)}</blockquote>` +
+        `\n\n<b>Новый вариант:</b>\n<blockquote>${escape(p.current_text_en)}</blockquote>` +
         `\n\n<b>Учтены правки:</b>\n${corr}` +
         `\n\n⚠️ <i>Старый пост будет удалён, новый опубликован. Лайки/комменты не переносятся.</i>`,
       keyboard: [
@@ -177,7 +177,7 @@ export function formatDraft(d: PostDraft): { text: string; keyboard: InlineKeybo
     return {
       text:
         header +
-        `\n\n<b>Текущий вариант (EN):</b>\n<blockquote>${escape(d.text_en)}</blockquote>` +
+        `\n\n<b>Текущий вариант:</b>\n<blockquote>${escape(d.text_en)}</blockquote>` +
         (d.corrections_ru.length > 0
           ? `\n\n<b>Уже применили правки:</b>\n${d.corrections_ru.map((c, i) => `${i + 1}. ${escape(c)}`).join('\n')}`
           : '') +
@@ -190,7 +190,7 @@ export function formatDraft(d: PostDraft): { text: string; keyboard: InlineKeybo
     return {
       text:
         header +
-        `\n\n<b>Текст (EN):</b>\n<blockquote>${escape(d.text_en)}</blockquote>` +
+        `\n\n<b>Текст:</b>\n<blockquote>${escape(d.text_en)}</blockquote>` +
         (d.corrections_ru.length > 0
           ? `\n\n<b>Применены правки:</b>\n${d.corrections_ru.map((c, i) => `${i + 1}. ${escape(c)}`).join('\n')}`
           : '') +

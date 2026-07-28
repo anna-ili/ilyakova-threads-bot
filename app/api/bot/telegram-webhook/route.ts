@@ -418,18 +418,18 @@ async function handleDraftCorrection(draftId: string, userText: string) {
     return;
   }
   d.corrections_ru.push(userText);
-  let newEn: string;
+  let newText: string;
   try {
-    // Передаём исходный текст (text_en + предыдущие правки) — функция reviseDraftPost
+    // Поле text_en оставлено только для совместимости; внутри русский текст.
     // принимает original / current / corrections
     const original = d.text_en; // первая версия «Ильякова Тредс»
     // current = последний вариант — после очередной правки он становится новым
-    newEn = await reviseDraftPost(original, d.text_en, d.corrections_ru);
+    newText = await reviseDraftPost(original, d.text_en, d.corrections_ru);
   } catch (e: any) {
     await sendTelegram(`<b>⚠️ LLM упал при правке драфта:</b>\n<pre>${escape(String(e).slice(0, 400))}</pre>`);
     return;
   }
-  d.text_en = newEn;
+  d.text_en = newText;
   d.status = 'awaiting_approval';
   await saveDraft(d);
   await setAwaitingDraftId(null);
@@ -708,7 +708,7 @@ async function handleDraftCallback(
         `created: ${today}`,
         `goal: ${d.goal}`,
         ...(d.castdev_module ? [`castdev_module: ${d.castdev_module}`] : []),
-        `pillar: amy_generated`,
+        `pillar: ilyakova_generated`,
         `status: draft`,
         '---',
       ].join('\n');
@@ -947,8 +947,8 @@ async function handleOutreachCallback(
         item.telegram_message_id,
         `<b>Outreach: правка комментария</b>\n` +
         `Автор: <b>@${escape(item.thread_author)}</b>\n\n` +
-        `<b>Их пост (перевод):</b>\n<blockquote>${escape(postPreview)}</blockquote>\n\n` +
-        `<b>Текущий ответ (перевод):</b>\n<blockquote>${escape(item.comment_ru)}</blockquote>\n\n` +
+        `<b>Их пост:</b>\n<blockquote>${escape(postPreview)}</blockquote>\n\n` +
+        `<b>Текущий ответ:</b>\n<blockquote>${escape(item.comment_ru)}</blockquote>\n\n` +
         `✍️ <i>Напиши правку текстом (например: «короче», «без упоминания бренда», «более тёплый тон»).</i>`,
         { inlineKeyboard: [[{ text: '❌ Отмена', callback_data: `oc_skip:${item.id}` }]] }
       );
@@ -1012,7 +1012,7 @@ async function handleOutreachCorrection(itemId: string, userText: string) {
   await saveOutreachItem(item);
   await setAwaitingOutreachId(null);
 
-  // Обновляем карточку (показываем русские переводы; английский постится после ✅)
+  // Обновляем карточку: и исходный пост, и наш ответ показываем по-русски.
   const postRu = item.thread_text_ru?.trim() || item.thread_text;
   const postPreview = postRu.length > 300 ? postRu.slice(0, 300) + '...' : postRu;
 
@@ -1021,8 +1021,8 @@ async function handleOutreachCorrection(itemId: string, userText: string) {
     `<b>Outreach: найден тред</b>\n` +
     `Автор: <b>@${escape(item.thread_author)}</b>\n` +
     `<a href="${escape(item.thread_url)}">открыть в Threads</a>\n\n` +
-    `<b>Их пост (перевод):</b>\n<blockquote>${escape(postPreview)}</blockquote>\n\n` +
-    `<b>Наш ответ (перевод):</b>\n<blockquote>${escape(item.comment_ru)}</blockquote>\n\n` +
+    `<b>Их пост:</b>\n<blockquote>${escape(postPreview)}</blockquote>\n\n` +
+    `<b>Наш ответ:</b>\n<blockquote>${escape(item.comment_ru)}</blockquote>\n\n` +
     `<b>Правки:</b>\n${corrections}`;
 
   const keyboard = [

@@ -14,7 +14,7 @@ export interface Dialog {
   root_reply_id: string;
   reply_ids: string[];
   reply_username: string;
-  reply_text_en: string;
+  reply_text_en: string; // legacy-название: исходный комментарий на любом языке
   reply_permalink: string;
   post_id: string;
   post_text: string;
@@ -24,7 +24,7 @@ export interface Dialog {
   status: DialogStatus;
   skip_reason?: string;
   publish_at?: string;
-  reply_text_en_final?: string;
+  reply_text_en_final?: string; // legacy-название: опубликованный русский ответ
   telegram_message_id?: number;
   created_at: string;
   updated_at: string;
