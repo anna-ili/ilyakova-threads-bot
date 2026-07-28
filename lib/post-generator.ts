@@ -70,6 +70,7 @@ function buildRecentContext(recent: QueueItem[]): string {
 interface StyleReview {
   text: string;
   issues?: string[];
+  remaining_unsupported_facts?: string[];
 }
 
 function parseJson<T>(raw: string, label: string): T {
@@ -118,13 +119,18 @@ ${text}
 - выдуманные факты, цифры, клиенты или личный опыт;
 - литературная гладкость вместо живой разговорной речи.
 
+Отдельно проверь каждую цифру, результат, событие и конкретную деталь. Если её
+нет в контексте задачи, это выдумка — удали её. Нельзя придумывать «200 страниц»,
+«три месяца», клиента или личную историю только ради убедительности.
+
 Не пытайся сделать текст «сильнее», «глубже» или «продающе». Сделай его
 конкретнее, естественнее и ближе к эталонным постам. Можно сильно сократить.
 
 Верни СТРОГО JSON:
 {
   "text": "финальная версия поста на русском",
-  "issues": ["что пришлось убрать или исправить"]
+  "issues": ["что пришлось убрать или исправить"],
+  "remaining_unsupported_facts": ["только факты, оставшиеся в финальном тексте без источника; обычно пустой массив"]
 }
 `.trim(),
       },
@@ -136,6 +142,11 @@ ${text}
   reviewed.text = (reviewed.text ?? '').trim().replace(/^["«'"]|["»'"]$/g, '');
   if (!reviewed.text || !/[А-Яа-яЁё]/.test(reviewed.text)) {
     throw new Error(`Редактор стиля вернул пустой или нерусский текст: ${raw.slice(0, 300)}`);
+  }
+  if ((reviewed.remaining_unsupported_facts ?? []).length > 0) {
+    throw new Error(
+      `Черновик отклонён: остались выдуманные факты — ${reviewed.remaining_unsupported_facts!.join('; ')}`
+    );
   }
   return reviewed;
 }
