@@ -22,6 +22,7 @@ import {
 import { getPostGenerationPrompt } from './brand';
 import { handleAt } from './brand-config';
 import { codexChat } from './codex-chat';
+import { listPendingDrafts } from './post-draft';
 
 async function chat(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
@@ -167,6 +168,9 @@ function extractRecentGoals(recent: QueueItem[]): ContentGoal[] {
 // =====================================================================
 export async function generatePost(forceGoal?: ContentGoal): Promise<GeneratedPost> {
   const recent = await recentPostedItems(14);
+  const pendingDrafts = (await listPendingDrafts())
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 10);
   const recentGoals = extractRecentGoals(recent);
   const goal = forceGoal ?? pickNextGoal(recentGoals);
   const spec = GOAL_SPECS[goal];
@@ -182,6 +186,11 @@ export async function generatePost(forceGoal?: ContentGoal): Promise<GeneratedPo
   }
 
   const recentBlock = buildRecentContext(recent);
+  const pendingBlock = pendingDrafts.length > 0
+    ? pendingDrafts
+        .map((draft, i) => `${i + 1}. [${draft.goal}] ${draft.text_en.slice(0, 240)}`)
+        .join('\n\n')
+    : '(нет черновиков на согласовании)';
 
   const userPrompt = `
 Сгенери ОДИН пост для Threads-аккаунта ${handleAt()}.
@@ -197,6 +206,9 @@ ${spec.target_length_chars[0]}–${spec.target_length_chars[1]} символов
 
 ## Последние ${recent.length} постов аккаунта (чтобы не повторяться по теме/хуку/деталям)
 ${recentBlock}
+
+## Уже предложенные черновики — НЕ повторять их тему, заход и формулировки
+${pendingBlock}
 
 ## Обязательные требования
 - Не используй обязательную схему «хук — боль — решение — мораль».
