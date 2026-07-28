@@ -31,7 +31,7 @@ export function findHardStyleViolations(text: string): string[] {
       /что сейчас прода[её]м[^.!?]{0,100}кого вед[её]м[^.!?]{0,100}после чего/i,
       'симметричное перечисление этапов продажи',
     ],
-    [/\b\p{L}+\s+есть,\s*\p{L}+\s+есть,\s*/iu, 'тройная симметричная формула'],
+    [/\p{L}+\s+есть,\s*\p{L}+\s+есть,\s*/iu, 'тройная симметричная формула'],
   ];
 
   return checks.filter(([pattern]) => pattern.test(text)).map(([, issue]) => issue);
