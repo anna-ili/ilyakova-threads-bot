@@ -19,7 +19,7 @@ import {
   loadFindings,
   pickModuleForDiscovery,
 } from './castdev';
-import { getBrandVoicePrompt } from './brand';
+import { getPostGenerationPrompt } from './brand';
 import { handleAt } from './brand-config';
 import { codexChat } from './codex-chat';
 
@@ -100,12 +100,6 @@ export async function generatePost(forceGoal?: ContentGoal): Promise<GeneratedPo
 # Тип поста: ${goal}
 ${spec.description}
 
-## Структура
-${spec.structure}
-
-## Оптимизируем под
-${spec.optimize_for}
-
 ## Чего НЕ делать
 ${spec.avoid.map((a) => `- ${a}`).join('\n')}
 
@@ -114,6 +108,15 @@ ${spec.target_length_chars[0]}–${spec.target_length_chars[1]} символов
 
 ## Последние ${recent.length} постов аккаунта (чтобы не повторяться по теме/хуку/деталям)
 ${recentBlock}
+
+## Обязательные требования
+- Не используй обязательную схему «хук — боль — решение — мораль».
+- Выбери естественный формат из эталонных примеров: наблюдение, позиция,
+  короткий кейс, реакция, вопрос или живая история.
+- Не выдумывай от имени Анны факты, клиентов, результаты, цифры и события,
+  которых нет в контексте.
+- Не добавляй метафору или псевдомудрый вывод ради красивого финала.
+- Один пост — одна конкретная мысль.
 
 ## Формат ответа — СТРОГО JSON
 {
@@ -128,7 +131,7 @@ ${recentBlock}
 
   const raw = await chat(
     [
-      { role: 'system', content: await getBrandVoicePrompt() },
+      { role: 'system', content: await getPostGenerationPrompt() },
       { role: 'user', content: userPrompt },
     ],
     900
