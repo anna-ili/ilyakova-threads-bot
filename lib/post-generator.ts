@@ -65,6 +65,91 @@ function buildRecentContext(recent: QueueItem[]): string {
     .join('\n\n');
 }
 
+interface StyleReview {
+  text: string;
+  issues?: string[];
+}
+
+function parseJson<T>(raw: string, label: string): T {
+  let cleaned = raw.trim();
+  const fenced = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (fenced) cleaned = fenced[1];
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    throw new Error(`${label} вернул не-JSON: ${raw.slice(0, 300)}`);
+  }
+}
+
+function hardStyleViolations(text: string): string[] {
+  const checks: Array<[RegExp, string]> = [
+    [/\bдело не в\b/i, 'конструкция «дело не в X»'],
+    [/\bэто не\b[^.!?]{0,100}[.!?]\s*(?:это|а)\b/i, 'конструкция «это не X — это Y»'],
+    [
+      /\b(?:не убивает|не убивают|не нужен|не нужна|не нужно|не нужны)\b[^.!?]{0,140}[.!?]\s*(?:их\s+|ему\s+|ей\s+)?(?:убивает|убивают|нужен|нужна|нужно|нужны)\b/i,
+      'декоративное противопоставление X/Y',
+    ],
+    [/\b(?:точка роста|главный инсайт|оставляет послевкусие)\b/i, 'нейросетевая стоп-фраза'],
+    [/\bкоридор без двер/i, 'выдуманная декоративная метафора'],
+    [/\b\p{L}+\s+есть,\s*\p{L}+\s+есть,\s*/iu, 'тройная симметричная формула'],
+  ];
+
+  return checks.filter(([pattern]) => pattern.test(text)).map(([, issue]) => issue);
+}
+
+async function reviewAnnaStyle(
+  text: string,
+  goal: ContentGoal,
+  systemPrompt: string
+): Promise<StyleReview> {
+  const raw = await chat(
+    [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: `
+Ты — последний редактор перед показом черновика Анне.
+
+Тип поста: ${goal}
+
+Черновик:
+"""
+${text}
+"""
+
+Сравни его с реальными примерами Анны и перепиши, если заметен хотя бы один
+признак нейросетевого текста:
+- слишком правильная композиция;
+- обобщение, которое можно отдать любому маркетологу;
+- перечисление терминов ради убедительности;
+- симметричные или тройные формулы;
+- конструкция «X не делает/убивает, делает/убивает Y»;
+- метафора или мудрый вывод в последнем абзаце;
+- выдуманные факты, цифры, клиенты или личный опыт;
+- литературная гладкость вместо живой разговорной речи.
+
+Не пытайся сделать текст «сильнее», «глубже» или «продающе». Сделай его
+конкретнее, естественнее и ближе к эталонным постам. Можно сильно сократить.
+
+Верни СТРОГО JSON:
+{
+  "text": "финальная версия поста на русском",
+  "issues": ["что пришлось убрать или исправить"]
+}
+`.trim(),
+      },
+    ],
+    900
+  );
+
+  const reviewed = parseJson<StyleReview>(raw, 'Редактор стиля');
+  reviewed.text = (reviewed.text ?? '').trim().replace(/^["«'"]|["»'"]$/g, '');
+  if (!reviewed.text || !/[А-Яа-яЁё]/.test(reviewed.text)) {
+    throw new Error(`Редактор стиля вернул пустой или нерусский текст: ${raw.slice(0, 300)}`);
+  }
+  return reviewed;
+}
+
 // Узнаём какие цели были у последних N постов — для ротации
 function extractRecentGoals(recent: QueueItem[]): ContentGoal[] {
   return recent
@@ -129,29 +214,27 @@ ${recentBlock}
 Никаких пояснений вне JSON.
 `.trim();
 
+  const systemPrompt = await getPostGenerationPrompt();
   const raw = await chat(
     [
-      { role: 'system', content: await getPostGenerationPrompt() },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
     ],
     900
   );
 
-  // Парсим JSON (модель иногда оборачивает в ```json)
-  let cleaned = raw.trim();
-  const fenced = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (fenced) cleaned = fenced[1];
-  let parsed: { text_en: string; rationale: string };
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch (e) {
-    throw new Error(`LLM вернул не-JSON: ${raw.slice(0, 300)}`);
-  }
+  const parsed = parseJson<{ text_en: string; rationale: string }>(raw, 'Генератор');
 
-  const text = (parsed.text_en ?? '').trim().replace(/^["«'"]|["»'"]$/g, '');
+  const firstDraft = (parsed.text_en ?? '').trim().replace(/^["«'"]|["»'"]$/g, '');
+  const reviewed = await reviewAnnaStyle(firstDraft, goal, systemPrompt);
+  const text = reviewed.text;
   if (!text) throw new Error(`LLM вернул пустой text_en: ${raw.slice(0, 300)}`);
   if (!/[А-Яа-яЁё]/.test(text)) {
     throw new Error(`LLM вернул пост не на русском языке: ${raw.slice(0, 300)}`);
+  }
+  const violations = hardStyleViolations(text);
+  if (violations.length > 0) {
+    throw new Error(`Черновик отклонён антистилем: ${violations.join(', ')}`);
   }
 
   // Имя файла: дата + цель + slug из первых слов
