@@ -1,6 +1,7 @@
 // Генерация через Codex CLI с авторизацией ChatGPT.
-import { getBrandVoicePrompt, DraftResult } from './brand';
+import { getBrandVoicePrompt, getPostGenerationPrompt, DraftResult } from './brand';
 import { codexChat as chat } from './codex-chat';
+import { findHardStyleViolations } from './style-guard';
 
 export interface CommentContext {
   postText: string; // текст поста, под которым коммент
@@ -147,6 +148,7 @@ export async function reviseDraftPost(
   correctionsRu: string[]
 ): Promise<string> {
   const corr = correctionsRu.map((c, i) => `${i + 1}. ${c}`).join('\n');
+  const systemPrompt = await getPostGenerationPrompt();
   const userPrompt = `
 Это черновик поста для Threads-аккаунта бренда, который написал бот «Ильякова Тредс» и
 который ещё НЕ опубликован. Автор канала просит внести правки.
@@ -160,19 +162,74 @@ ${currentEn !== originalEn ? `Текущий вариант после пред�
 Правки автора (русский, по порядку — последняя самая важная):
 ${corr}
 
-Перепиши пост на естественном русском с учётом ВСЕХ правок. Сохраняй
-голос бренда (см. system prompt). Не добавляй от себя того, чего не
-просили. Верни ТОЛЬКО новый русский текст, без пояснений и без кавычек.
+Это редактура, а не просьба написать новый большой пост.
+
+- Исправь только то, на что указала Анна.
+- Не объясняй тезис подробнее, если она этого не просила.
+- Не увеличивай текст; лучше сократи.
+- Не превращай замечание в лекцию, методичку или пошаговый разбор.
+- Не заменяй один штамп другим.
+- Если Анна пишет, что причинно-следственная связь сломана, восстанови одну
+  понятную связь внутри исходной мысли, а не добавляй новую теорию.
+
+Верни ТОЛЬКО исправленный русский текст, без пояснений и кавычек.
 `.trim();
 
-  const raw = await chat(
+  const firstPass = await chat(
     [
-      { role: 'system', content: await getBrandVoicePrompt() },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
     ],
     { maxTokens: 600 }
   );
-  return raw.trim().replace(/^["«'"]|["»'"]$/g, '');
+  const candidate = firstPass.trim().replace(/^["«'"]|["»'"]$/g, '');
+
+  const reviewPrompt = `
+Ты проверяешь не новый пост, а точечную редактуру черновика Анны.
+
+Текст до правки:
+"""
+${currentEn}
+"""
+
+Замечания Анны:
+${corr}
+
+Предложенная редактура:
+"""
+${candidate}
+"""
+
+Убери всё, что редактор добавил сверх замечаний: новые объяснения, перечисления,
+метафоры, выводы, нейросетевые связки и литературные украшения. Финальная версия
+не должна быть длиннее текста до правки. Сохрани живую разговорную неровность.
+
+Верни ТОЛЬКО финальный русский текст, без пояснений и кавычек.
+`.trim();
+
+  const reviewedRaw = await chat(
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: reviewPrompt },
+    ],
+    { maxTokens: 600 }
+  );
+  const reviewed = reviewedRaw.trim().replace(/^["«'"]|["»'"]$/g, '');
+
+  if (!reviewed || !/[А-Яа-яЁё]/.test(reviewed)) {
+    throw new Error('Редактор вернул пустой или нерусский текст');
+  }
+  const maxLength = Math.max(Math.round(currentEn.length * 1.2), currentEn.length + 60);
+  if (reviewed.length > maxLength) {
+    throw new Error(
+      `Правка отклонена: редактор раздул текст с ${currentEn.length} до ${reviewed.length} символов`
+    );
+  }
+  const violations = findHardStyleViolations(reviewed);
+  if (violations.length > 0) {
+    throw new Error(`Правка отклонена антистилем: ${violations.join(', ')}`);
+  }
+  return reviewed;
 }
 
 // Одобренный ответ публикуется на русском без скрытого перевода.

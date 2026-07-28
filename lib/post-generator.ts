@@ -23,6 +23,7 @@ import { getPostGenerationPrompt } from './brand';
 import { handleAt } from './brand-config';
 import { codexChat } from './codex-chat';
 import { listPendingDrafts } from './post-draft';
+import { findHardStyleViolations } from './style-guard';
 
 async function chat(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
@@ -80,22 +81,6 @@ function parseJson<T>(raw: string, label: string): T {
   } catch {
     throw new Error(`${label} вернул не-JSON: ${raw.slice(0, 300)}`);
   }
-}
-
-function hardStyleViolations(text: string): string[] {
-  const checks: Array<[RegExp, string]> = [
-    [/\bдело не в\b/i, 'конструкция «дело не в X»'],
-    [/\bэто не\b[^.!?]{0,100}[.!?]\s*(?:это|а)\b/i, 'конструкция «это не X — это Y»'],
-    [
-      /\b(?:не убивает|не убивают|не нужен|не нужна|не нужно|не нужны)\b[^.!?]{0,140}[.!?]\s*(?:их\s+|ему\s+|ей\s+)?(?:убивает|убивают|нужен|нужна|нужно|нужны)\b/i,
-      'декоративное противопоставление X/Y',
-    ],
-    [/\b(?:точка роста|главный инсайт|оставляет послевкусие)\b/i, 'нейросетевая стоп-фраза'],
-    [/\bкоридор без двер/i, 'выдуманная декоративная метафора'],
-    [/\b\p{L}+\s+есть,\s*\p{L}+\s+есть,\s*/iu, 'тройная симметричная формула'],
-  ];
-
-  return checks.filter(([pattern]) => pattern.test(text)).map(([, issue]) => issue);
 }
 
 async function reviewAnnaStyle(
@@ -248,7 +233,7 @@ ${pendingBlock}
   if (!/[А-Яа-яЁё]/.test(text)) {
     throw new Error(`LLM вернул пост не на русском языке: ${raw.slice(0, 300)}`);
   }
-  const violations = hardStyleViolations(text);
+  const violations = findHardStyleViolations(text);
   if (violations.length > 0) {
     throw new Error(`Черновик отклонён антистилем: ${violations.join(', ')}`);
   }
