@@ -422,7 +422,7 @@ async function handleDraftCorrection(draftId: string, userText: string) {
   try {
     // Поле text_en оставлено только для совместимости; внутри русский текст.
     // принимает original / current / corrections
-    const original = d.text_en; // первая версия «Ильякова Тредс»
+    const original = d.original_text ?? d.text_en;
     // current = последний вариант — после очередной правки он становится новым
     newText = await reviseDraftPost(original, d.text_en, d.corrections_ru);
   } catch (e: any) {
@@ -643,6 +643,7 @@ async function startGenerate(goalArg?: string) {
       id: genDraftId(),
       goal: gen.goal,
       castdev_module: gen.castdev_module,
+      original_text: gen.text_en,
       text_en: gen.text_en,
       suggested_filename: gen.suggested_filename,
       rationale: gen.rationale,

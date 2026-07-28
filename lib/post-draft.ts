@@ -20,6 +20,8 @@ export interface PostDraft {
   id: string;
   goal: ContentGoal;
   castdev_module?: string;
+  // Первая версия генератора. Не затирается последующими итерациями правок.
+  original_text?: string;
   text_en: string; // legacy-название: здесь всегда русский текст
   suggested_filename: string;
   rationale: string;
